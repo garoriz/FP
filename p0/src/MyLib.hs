@@ -21,4 +21,25 @@ rev (x:xs) = xs -- [x]
 -- > zipLong [] "abcd"
 -- []
 zipLong :: [a] -> [b] -> [(a,b)]
-zipLong as bs = error "Implement me!"
+zipLong [] bs = []
+zipLong as [] = []
+zipLong as bs
+   | length as > length bs = firstZip ++ (zipLongL (drop firstZipSize as) bs)
+   | length as < length bs = firstZip ++ (zipLongR as (drop firstZipSize bs))
+   | otherwise = firstZip
+  where
+    firstZip = zip as bs
+    firstZipSize = length firstZip
+	
+
+zipLongL [] bs = []
+zipLongL as bs = firstZip ++ (zipLongL (drop firstZipSize as) bs)
+  where
+    firstZip = zip as bs
+    firstZipSize = length firstZip
+
+zipLongR as [] = []
+zipLongR as bs = firstZip ++ (zipLongR as (drop firstZipSize bs))
+  where
+    firstZip = zip as bs
+    firstZipSize = length firstZip
