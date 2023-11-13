@@ -23,7 +23,6 @@ rev (x:xs) = xs -- [x]
 -- > zipLong [] "abcd"
 -- []
 zipLong :: [a] -> [b] -> [(a,b)]
-<<<<<<< HEAD
 zipLong [] bs = []
 zipLong as [] = []
 zipLong as bs
@@ -46,9 +45,6 @@ zipLongR as bs = firstZip ++ (zipLongR as (drop firstZipSize bs))
   where
     firstZip = zip as bs
     firstZipSize = length firstZip
-=======
-zipLong as bs = error "Implement me!"
-
 
 -- Binary Search Tree
 --
@@ -87,4 +83,4 @@ rotateLeft t = t
 
 rotateRight :: Tree a -> Tree a
 rotateRight t = t
->>>>>>> 3cd79a35a4f2a607de6b4254b5857271f3d4c26d
+
