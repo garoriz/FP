@@ -55,7 +55,7 @@ arbitraryTree low high
     pure $ Node (Just l) v (Just r)
 
 treeGen :: Int -> Int -> Gen (Tree Int)
-treeGen minVal maxVal = Gen.sized $ \size -> arbitraryTree minVal maxVal
+treeGen minVal maxVal = arbitraryTree minVal maxVal
 
 prop_bst :: Property
 prop_bst = property $ do
