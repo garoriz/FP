@@ -73,6 +73,16 @@ prop_isCorrect :: Property
 prop_isCorrect = property $ do
   tree <- forAll (treeGen 0 10000)
   assert $ isCorrect tree
+  
+prop_rotateLeft :: Property
+prop_rotateLeft = property $ do
+  tree <- forAll (treeGen 0 10000)
+  assert $ isCorrect (rotateLeft tree)
+  
+prop_rotateRight :: Property
+prop_rotateRight = property $ do
+  tree <- forAll (treeGen 0 10000)
+  assert $ isCorrect (rotateRight tree)
 
 insertTests :: TestTree
 insertTests = testGroup "insert"
@@ -82,4 +92,6 @@ insertTests = testGroup "insert"
   , testCase "3" $
     isCorrect (Node (Just $ leaf 1) 2 (Just $ leaf 2)) @? "tree 3"
   ,	testProperty "Is the tree correct?" prop_isCorrect
+  , testProperty "Is the rotating left correct?" prop_rotateLeft
+  , testProperty "Is the rotating right correct?" prop_rotateRight
   ]
