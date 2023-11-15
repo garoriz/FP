@@ -75,12 +75,19 @@ insert v t@(Node ml root mr)
   | v < root  = t{ left = Just $ maybe (leaf v) (insert v) ml }
   | otherwise = t{ right= Just $ maybe (leaf v) (insert v) mr }
 
+makeNode :: Maybe (Tree a) -> a -> Maybe (Tree a) -> Tree a
+makeNode l v r = Node l v r
+
 -- Напишите тесты-свойства к функциям и сами функции
 -- левого и правого поворота деревьев
 -- (см. https://en.wikipedia.org/wiki/Red%E2%80%93black_tree)
 rotateLeft :: Tree a -> Tree a
+rotateLeft (Node (Just l) x (Just (Node rl rv rr))) =
+  makeNode (Just (makeNode (Just l) x rl)) rv rr
 rotateLeft t = t
 
 rotateRight :: Tree a -> Tree a
+rotateRight (Node (Just (Node ll lv lr)) x (Just r)) =
+  makeNode ll lv (Just (makeNode lr x (Just r)))
 rotateRight t = t
 

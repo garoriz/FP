@@ -78,7 +78,7 @@ prop_rotateLeft :: Property
 prop_rotateLeft = property $ do
   tree <- forAll (treeGen 0 10000)
   assert $ isCorrect (rotateLeft tree)
-  
+
 prop_rotateRight :: Property
 prop_rotateRight = property $ do
   tree <- forAll (treeGen 0 10000)
