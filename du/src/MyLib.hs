@@ -43,16 +43,27 @@ getDirectorySize n dir = do
             else return 0
     return $ sum sizes
 
-printDirectorySize :: Int -> FilePath -> IO ()
-printDirectorySize n dir = do
+printDirectorySize :: Int -> Bool -> FilePath -> IO ()
+printDirectorySize n humanReadable dir = do
     size <- getDirectorySize n dir
-    putStrLn $ "Total size of " ++ dir ++ " at level " ++ show n ++ ": " ++ show size ++ " bytes"
+    let readableSize = formatSize humanReadable size
+    if (n == -1) 
+      then putStrLn $ "Level isn't specified"
+      else putStrLn $ "Total size of " ++ dir ++ " at level " ++ show n ++ ": " ++ readableSize
+
+formatSize :: Bool -> Integer -> String
+formatSize True size
+  | size < 1024 = show size ++ "B"
+  | size < 1024^2 = show (size `div` 1024) ++ "K"
+  | size < 1024^3 = show (size `div` (1024^2)) ++ "M"
+  | otherwise = show (size `div` (1024^3)) ++ "G"
+formatSize False size = show size
 
 someFunc :: IO ()
 someFunc = do
-	args <- getArgs 
+	args <- liftIO getArgs 
 	let (config, rootDir) = parseArgs args
-	printDirectorySize (level config) rootDir
+	printDirectorySize (level config) (humanReadable config) rootDir
   --directory <- listDirectory (head args)
   --fileSize <- getFileSize ("D:\\kNN")
   --putStrLn $ show fileSize
@@ -60,7 +71,7 @@ someFunc = do
 parseArgs :: [String] -> (Config, FilePath)
 parseArgs args =
   let config = Config
-        { level = if "-s" `elem` args then 0 else maybe 0 read (getOption "-d" args)
+        { level = if "-s" `elem` args then 0 else maybe (-1) read (getOption "-d" args)
         , humanReadable = "-h" `elem` args
         , verbose = "-v" `elem` args
         , rootDir = last args
