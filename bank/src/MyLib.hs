@@ -22,7 +22,12 @@ printBank bank = do
   let usersList = Map.toList usersMap
   let bankAccountList = Map.toList bankAccountMap
   forM_ (usersList) $ \(k,v) -> do
-    putStrLn $ show k ++ ": $ "
+    putStrLn $ show k
+    userAccountMap <- atomically $ readTVar v
+    let userAccountsList = Map.toList userAccountMap
+    forM_ (userAccountsList) $ \(accountK, accountV) -> do
+      amount <- atomically $ readTVar accountV
+      putStrLn $ show accountK ++ " : " ++ show amount
 	
 initializeBank :: STM Bank
 initializeBank = do
@@ -36,14 +41,63 @@ registerUser bank username = do
     modifyTVar' (users bank) $ Map.insertWith (const id) username newAccounts
 
 deleteUser :: Bank -> String -> STM ()
-deleteUser bank username =
-    modifyTVar' (users bank) $ Map.delete username
+deleteUser bank username = do
+    usersMap <- readTVar (users bank)
+    case Map.lookup username usersMap of
+        Just userAccountsTVar -> do
+            userAccounts <- readTVar userAccountsTVar
+            case userAccounts == Map.empty of
+              True -> do
+                modifyTVar' (users bank) $ Map.delete username
+              False -> do
+                error "The user has accounts"
+        Nothing -> do
+          error "There is no such user"
 
+openAccount :: Bank -> String -> Currency -> STM ()
+openAccount bank username currency = do
+    newAccount <- newTVar 0
+    usersMap <- readTVar (users bank)
+    case Map.lookup username usersMap of
+        Just userAccountsTVar -> do
+            userAccounts <- readTVar userAccountsTVar
+            case Map.lookup currency userAccounts of
+              Nothing -> do
+                let changedAccount = Map.insert currency newAccount userAccounts 
+                newAcc <- newTVar changedAccount 
+                modifyTVar' (users bank) $ Map.insert username newAcc
+              Just _ -> do
+                modifyTVar' (users bank) $ Map.insert username userAccountsTVar
+        Nothing -> do
+          error "There is no such user"
+
+closeAccount :: Bank -> String -> Currency -> STM ()
+closeAccount bank username currency = do
+    usersMap <- readTVar (users bank)
+    case Map.lookup username usersMap of
+        Just userAccountsTVar -> do
+            userAccounts <- readTVar userAccountsTVar
+            case Map.lookup currency userAccounts of
+              Nothing -> do
+                let changedAccount = Map.delete currency userAccounts 
+                newAcc <- newTVar changedAccount 
+                modifyTVar' (users bank) $ Map.insert username newAcc
+              Just amountTVar -> do 
+                let changedAccount = Map.delete currency userAccounts 
+                newAcc <- newTVar changedAccount 
+                amount <- readTVar amountTVar
+                if amount == 0
+                  then modifyTVar' (users bank) $ Map.insert username newAcc
+                  else error "The amount is not zero"
+        Nothing -> do
+          error "There is no such user"
 
 someFunc :: IO ()
 someFunc = do
     bank <- atomically initializeBank
     atomically $ do
         registerUser bank "User1"
-        deleteUser bank "User1"
+        openAccount bank "User1" "RUB"
+        closeAccount bank "User1" "RU"
+        --deleteUser bank "User1"
     printBank bank
