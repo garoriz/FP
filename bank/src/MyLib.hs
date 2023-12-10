@@ -92,12 +92,52 @@ closeAccount bank username currency = do
         Nothing -> do
           error "There is no such user"
 
+addAmount :: Bank -> String -> Currency -> Int -> STM ()
+addAmount bank username currency value = do
+    usersMap <- readTVar (users bank)
+    case Map.lookup username usersMap of
+        Just userAccountsTVar -> do
+            userAccounts <- readTVar userAccountsTVar
+            case Map.lookup currency userAccounts of
+              Nothing -> do
+                error "There is no account"
+              Just amountTVar -> do
+                amount <- readTVar amountTVar
+                newAccount <- newTVar (amount + value)
+                let changedAccount = Map.insert currency newAccount userAccounts 
+                newAcc <- newTVar changedAccount 
+                modifyTVar' (users bank) $ Map.insert username newAcc
+        Nothing -> do
+          error "There is no such user"
+		  
+withdrawMoney :: Bank -> String -> Currency -> Int -> STM ()
+withdrawMoney bank username currency value = do
+    usersMap <- readTVar (users bank)
+    case Map.lookup username usersMap of
+        Just userAccountsTVar -> do
+            userAccounts <- readTVar userAccountsTVar
+            case Map.lookup currency userAccounts of
+              Nothing -> do
+                error "There is no account"
+              Just amountTVar -> do
+                amount <- readTVar amountTVar
+                if (amount < value) 
+                  then error "Insufficient funds"
+                  else do
+                    newAccount <- newTVar (amount - value)
+                    let changedAccount = Map.insert currency newAccount userAccounts 
+                    newAcc <- newTVar changedAccount 
+                    modifyTVar' (users bank) $ Map.insert username newAcc
+        Nothing -> do
+          error "There is no such user"
+
 someFunc :: IO ()
 someFunc = do
     bank <- atomically initializeBank
     atomically $ do
         registerUser bank "User1"
         openAccount bank "User1" "RUB"
-        closeAccount bank "User1" "RU"
+        addAmount bank "User1" "RUB" 12
+        withdrawMoney bank "User1" "RUB" 10
         --deleteUser bank "User1"
     printBank bank
