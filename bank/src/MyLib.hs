@@ -131,6 +131,46 @@ withdrawMoney bank username currency value = do
         Nothing -> do
           error "There is no such user"
 
+{-transferBetweenAccounts :: Bank -> String -> Currency -> Currency -> Int -> STM ()
+transferBetweenAccounts bank username fromCurrency toCurrency amount = do
+    usersMap <- readTVar (users bank)
+    case Map.lookup username usersMap of
+        Just userAccountsTVar -> do
+            userAccounts <- readTVar userAccountsTVar
+            case Map.lookup fromCurrency userAccounts of
+              Nothing -> do
+                error "There is no account with " ++ fromCurrency
+              Just amountTVarFromCurrency -> do
+                amountFromCurrency <- readTVar amountTVarFromCurrency
+                if (amountFromCurrency < value) 
+                  then error "Insufficient funds in " ++ fromCurrency
+                  else do
+                    case Map.lookup toCurrency userAccounts of
+                      Nothing -> do
+                        error "There is no account with " ++ toCurrency
+                      Just amountTVarToCurrency -> do
+                        amountToCurrency <- readTVar amountTVarToCurrency
+                        newAccountFromCurrency <- newTVar (amountFromCurrency - value)
+                        newAccountToCurrency <- newTVar (amountToCurrency + value)
+                        let changedAccountFromCurrency = Map.insert currency newAccountFromCurrency userAccounts 
+                        let changedAccountToCurrency = Map.insert currency newAccountToCurrency userAccounts 
+                        newAccFromCurrency <- newTVar changedAccountFromCurrency 
+                        newAccToCurrency <- newTVar changedAccountToCurrency 
+                        modifyTVar' (users bank) $ Map.insert username newAccFromCurrency
+                        modifyTVar' (users bank) $ Map.insert username newAccToCurrency
+        Nothing -> do
+          error "There is no such user"-}
+
+transferBetweenAccounts :: Bank -> String -> Currency -> Currency -> Int -> STM ()
+transferBetweenAccounts bank username fromCurrency toCurrency amount = do
+    withdrawMoney bank username fromCurrency amount
+    addAmount bank username toCurrency amount
+
+transferBetweenUsers :: Bank -> String -> String -> Currency -> Currency -> Int -> STM ()
+transferBetweenUsers bank fromUser toUser fromCurrency toCurrency amount = do
+    withdrawMoney bank fromUser fromCurrency amount
+    addAmount bank toUser toCurrency amount
+
 someFunc :: IO ()
 someFunc = do
     bank <- atomically initializeBank
@@ -138,6 +178,7 @@ someFunc = do
         registerUser bank "User1"
         openAccount bank "User1" "RUB"
         addAmount bank "User1" "RUB" 12
-        withdrawMoney bank "User1" "RUB" 10
-        --deleteUser bank "User1"
+        registerUser bank "User2"
+        openAccount bank "User2" "USD"
+        transferBetweenUsers bank "User1" "User2" "RUB" "USD" 6
     printBank bank
