@@ -1,4 +1,4 @@
-module MyLib (someFunc) where
+module MyLib where
 
 import Control.Concurrent.STM
 import qualified Data.Map as Map

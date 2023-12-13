@@ -127,4 +127,11 @@ test-suite bank-test
     -- Test dependencies.
     build-depends:
         base ^>=4.17.2.0,
-        bank
+        bank,
+        tasty >=1.5,
+        tasty-hspec >= 1.2.0.4,
+        stm >=2.5,
+        containers >=0.6,
+        tasty-hunit >=0.10,
+        tasty-hedgehog >=1.4,
+        hedgehog >=1.4
