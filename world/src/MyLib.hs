@@ -9,7 +9,8 @@ import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8)
 import Data.Vector (Vector, toList)
 import Control.Lens
-import Data.List (groupBy, sortBy)
+import Data.List (groupBy, sortBy, maximumBy)
+import Data.Ord (comparing)
 
 data DataRow = DataRow
   { _trackId :: String
@@ -69,7 +70,17 @@ toAlbum row = Album
   }
 
 toAlbums :: [DataRow] -> [Album]
-toAlbums row = map (\a -> toAlbum a) $ groupBy (\a b -> a ^. trackAlbumId == b ^. trackAlbumId) $ sortBy (\a b -> compare (a ^. trackAlbumId) (b ^. trackAlbumId)) row
+toAlbums row = map (\a -> toAlbum a) $ 
+    groupBy (\a b -> a ^. trackAlbumId == b ^. trackAlbumId) $ 
+    sortBy (\a b -> compare (a ^. trackAlbumId) (b ^. trackAlbumId)) row
+
+longestAlbumByYear :: String -> [Album] -> Maybe Album
+longestAlbumByYear date albums =
+  case filter (\album -> album ^. albumReleaseDate == date) albums of
+    [] -> Nothing
+    albumsOfYear -> Just $ maximumBy (comparing totalDuration) albumsOfYear
+  where
+    totalDuration album = sum $ map (\a -> a ^. duration) (album ^. albumTracks)
 
 someFunc :: IO ()
 someFunc = do
@@ -79,4 +90,7 @@ someFunc = do
         Left err -> putStrLn $ "Error: " ++ err
         Right dataRows -> do
             let albums = toAlbums dataRows
-            putStrLn $ "Albums: " ++ show albums
+                date = "2019-06-14"
+            case longestAlbumByYear date albums of
+                Nothing -> putStrLn $ "No albums released in " ++ show date
+                Just album -> putStrLn $ "Longest album in " ++ show date ++ ": " ++ show album
