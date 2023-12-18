@@ -82,6 +82,14 @@ longestAlbumByYear date albums =
   where
     totalDuration album = sum $ map (\a -> a ^. duration) (album ^. albumTracks)
 
+albumWithMaxAverageSongLengthByYear :: String -> [Album] -> Maybe Album
+albumWithMaxAverageSongLengthByYear date albums =
+  case filter (\album -> album ^. albumReleaseDate == date) albums of
+    [] -> Nothing
+    albumsOfYear -> Just $ maximumBy (comparing averageDuration) albumsOfYear
+  where
+    averageDuration album = fromIntegral (sum $ map (\a -> a ^. duration) (album ^. albumTracks)) / fromIntegral (length (album ^. albumTracks))
+
 someFunc :: IO ()
 someFunc = do
     let csvFile = "spotify_songs.csv"
@@ -90,7 +98,10 @@ someFunc = do
         Left err -> putStrLn $ "Error: " ++ err
         Right dataRows -> do
             let albums = toAlbums dataRows
-                date = "2019-06-14"
+                date = "2019-05-23"
             case longestAlbumByYear date albums of
                 Nothing -> putStrLn $ "No albums released in " ++ show date
                 Just album -> putStrLn $ "Longest album in " ++ show date ++ ": " ++ show album
+            case albumWithMaxAverageSongLengthByYear date albums of
+                Nothing -> putStrLn $ "No albums released in " ++ show date
+                Just album -> putStrLn $ "Album with maximum average song length in " ++ show date ++ ": " ++ show album
