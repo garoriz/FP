@@ -9,7 +9,7 @@ import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8)
 import Data.Vector (Vector, toList)
 import Control.Lens
-import Data.List (groupBy, sortBy, maximumBy)
+import Data.List (groupBy, sortBy, maximumBy, minimumBy)
 import Data.Ord (comparing)
 
 data DataRow = DataRow
@@ -90,6 +90,14 @@ albumWithMaxAverageSongLengthByYear date albums =
   where
     averageDuration album = fromIntegral (sum $ map (\a -> a ^. duration) (album ^. albumTracks)) / fromIntegral (length (album ^. albumTracks))
 
+shortestAlbumByYear :: String -> [Album] -> Maybe Album
+shortestAlbumByYear date albums =
+  case filter (\album -> album ^. albumReleaseDate == date) albums of
+    [] -> Nothing
+    albumsOfYear -> Just $ minimumBy (comparing totalDuration) albumsOfYear
+  where
+    totalDuration album = sum $ map (\a -> a ^. duration) (album ^. albumTracks)
+
 someFunc :: IO ()
 someFunc = do
     let csvFile = "spotify_songs.csv"
@@ -100,8 +108,11 @@ someFunc = do
             let albums = toAlbums dataRows
                 date = "2019-05-23"
             case longestAlbumByYear date albums of
-                Nothing -> putStrLn $ "No albums released in " ++ show date
+                Nothing -> putStrLn $ "No logest album released in " ++ show date
                 Just album -> putStrLn $ "Longest album in " ++ show date ++ ": " ++ show album
             case albumWithMaxAverageSongLengthByYear date albums of
-                Nothing -> putStrLn $ "No albums released in " ++ show date
+                Nothing -> putStrLn $ "No album with maximum average song length released in " ++ show date
                 Just album -> putStrLn $ "Album with maximum average song length in " ++ show date ++ ": " ++ show album
+            case shortestAlbumByYear date albums of
+                Nothing -> putStrLn $ "No shortest album released in " ++ show date
+                Just album -> putStrLn $ "Shortest album in " ++ show date ++ ": " ++ show album
