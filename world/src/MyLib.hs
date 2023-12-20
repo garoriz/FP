@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module MyLib (someFunc) where
+module MyLib where
 
 import qualified Data.ByteString.Lazy as BL
 import Data.Csv
@@ -41,14 +41,14 @@ data Track = Track
   { _ident :: String
   , _name :: String
   , _duration :: Int
-  } deriving Show
+  } deriving (Eq,Show)
 
 data Album = Album
   { _albumId :: String
   , _albumName :: String
   , _albumReleaseDate :: String
   , _albumTracks :: [Track]
-  } deriving Show
+  } deriving (Eq,Show)
 
 makeLenses ''DataRow
 makeLenses ''Track
@@ -108,7 +108,7 @@ someFunc = do
             let albums = toAlbums dataRows
                 date = "2019-05-23"
             case longestAlbumByYear date albums of
-                Nothing -> putStrLn $ "No logest album released in " ++ show date
+                Nothing -> putStrLn $ "No longest album released in " ++ show date
                 Just album -> putStrLn $ "Longest album in " ++ show date ++ ": " ++ show album
             case albumWithMaxAverageSongLengthByYear date albums of
                 Nothing -> putStrLn $ "No album with maximum average song length released in " ++ show date

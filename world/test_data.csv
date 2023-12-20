@@ -1,0 +1,4 @@
+track_id,track_name,track_artist,track_popularity,track_album_id,track_album_name,track_album_release_date,playlist_name,playlist_id,playlist_genre,playlist_subgenre,danceability,energy,key,loudness,mode,speechiness,acousticness,instrumentalness,liveness,valence,tempo,duration_ms
+1,track 1,test,1,1,album 1,2002-09-18,test,1,test,test,1,1,1,1,1,1,1,1,1,1,1,3
+1,track 2,test,1,1,album 2,2002-09-18,test,1,test,test,1,1,1,1,1,1,1,1,1,1,1,3
+2,track 3,test,1,2,album 2,2002-09-18,test,1,test,test,1,1,1,1,1,1,1,1,1,1,1,1
